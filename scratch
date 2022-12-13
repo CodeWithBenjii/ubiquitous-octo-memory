@@ -1,0 +1,12 @@
+# Todo
+
+    - Seed the shopify with some demo data.(Wired headphones and wireless headphones)
+    - Add Relations to the products e.g Wired headphones link to wired headphones ETC.
+    - Create the core recomendation component.
+        -   Product items will be displayed in a flexbox.
+        -   Ajax, Fetch request to request the datafrom the api endpoint.
+        -   Implement a carousel using vanila javascript.
+        -   styling using flat css.
+
+Coursel:
+

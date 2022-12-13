@@ -1,0 +1,121 @@
+{% schema %}
+  {
+    "name": "custom related",
+    "settings": [
+      {
+        "id": "product_related_heading",
+        "type": "text",
+        "label": "Product Related Heading",
+        "default": "You may also like"
+      }
+    ],
+    "templates": ["product"]
+  }
+{% endschema %}
+
+{% stylesheet %}
+
+.section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+  .card-link{
+    text-decoration:none;
+    color: inherit;
+  }
+  .related-products-carousel{
+    list-style:none;
+    position: relative;
+    margin: 0 auto;
+  }
+
+  /* .product-item{
+    width:30rem;
+    height: 100%;
+  } */
+
+  .related-products-carousel .product-item,
+  .related-products-carousel .product-item-hidden {
+      display: none;
+  }
+
+  .related-products-carousel .product-item-visible {
+    display: block; /* show current slide image */
+    animation: fadeVisibility 0.5s; /* for fading effect when switching between slides */
+}
+
+  .product-item img{
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+  }
+  .product-card-details{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+  }
+
+{% endstylesheet %}
+
+
+<div class="related-products page-width section-{{ section.id }}-padding" id="related-products">
+  <h1>{{ section.settings.product_related_heading | escape }}</h1>
+    <ul class="related-products-carousel">
+
+    </ul>
+</div>
+
+
+
+
+
+
+<script>
+const productRecommendationsSection = document.querySelector('.related-products-carousel');
+
+
+fetch(window.Shopify.routes.root + "recommendations/products.json?product_id={{ product.id }}&intent=related")
+ .then(response => response.json())
+ .then((res) => {
+  console.log(res)
+  if (res.products) {
+    res.products.forEach((el) => {
+      createCard(el);
+    }) 
+  } else {
+    document.getElementById("related-products").style.display = "none";
+  }
+ });
+
+
+ function createCard(el) {
+  if (el.images < 0) return
+  const Card = document.createElement("li")
+  Card.className = "product-item"
+  const TempElement = `
+  <a class="card-link" href="${el.url}">
+    <img src="${el.images[0]}" alt="">
+    <div class="product-card-details">
+      <div class="left">
+        <span>${el.type ? el.type : "N/A"}</span>
+        <h3 class="product-card-heading">${el.title}</h3>
+      </div>
+        <span class="product-card-price">$${el.price / 100}</span>
+    </div>
+  </a>
+  `
+  Card.innerHTML = TempElement
+  productRecommendationsSection.append(Card)
+ }
+</script>
+
+
+
+

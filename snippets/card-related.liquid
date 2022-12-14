@@ -1,0 +1,11 @@
+{%- if card_related and card_related != empty -%}
+  <div class="product-card">
+    <a href="{{ card_related.url }}">
+      <img src="{{ card_related.featured_media | image_url }}" alt="" loading="lazy">
+      <div class="product-card-details">
+        <h3 class="product-card-heading">{{ card_related.title }}</h3>
+        <span class="product-card-price">{{ card_related.price | money }}</span>
+      </div>
+    </a>
+  </div>
+{% endif %}

@@ -186,17 +186,9 @@
             >
             {%- if recommendations.products_count > 0 -%}
               {%- for product in recommendations.products -%}
-                  {% if product.featured_media %}
-                    <div class="product-card">
-                      <a href="{{ product.url }}">
-                      <img src="{{ product.featured_media | image_url }}" alt="" loading="lazy" />
-                        <div class="product-card-details">
-                          <h3 class="product-card-heading">{{ product.title }}</h3>
-                          <span class="product-card-price">{{ product.price | money }}</span>
-                        </div>
-                      </a>
-                    </div>
-                  {% endif %}
+                  {% render 'card-related',
+                  card_related: product,
+                  %}
                 {%- endfor -%}
               {%- endif -%}      
               </product-recommendations>

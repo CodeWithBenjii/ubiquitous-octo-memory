@@ -1,5 +1,4 @@
-
-  {% schema %}
+{% schema %}
 {
   "name": "custom related",
   "settings": [
@@ -38,21 +37,30 @@
       "type": "number",
       "label": "Margin of the Header in rems",
       "default": 0
-    },{
+    },
+    {
       "id": "product_card_border",
       "type": "text",
       "label": "Product card border (e.g, 1px solid transparent)",
       "default": "1px solid transparent"
-    },{
+    },
+    {
       "id": "product_card_border_hover",
       "type": "text",
       "label": "Product card border (e.g, 1px solid black)",
       "default": "1px solid black"
-    },{
+    },
+    {
       "id": "product_card_heading_font_weight",
       "type": "text",
       "label": "Font Weight for Product Title",
       "default": "600"
+    },
+    {
+      "id": "products_to_show",
+      "label": "limit of products to show",
+      "type": "number",
+      "default": 6
     }
   ],
   "templates": [
@@ -70,7 +78,7 @@
 
   .carousel-container {
     width: 100%;
-		height: 100%;
+  height: 100%;
     display: flex;
     list-style: none;
     overflow: scroll;
@@ -119,6 +127,7 @@
     border-radius: 2rem 0 0 2rem;
   }
   .product-card {
+    background:red;
     display: flex;
     flex: 0 0 100%;
     justify-content: space-between;
@@ -126,7 +135,7 @@
     background-color: {{ section.settings.product_card_color }};
     padding-bottom: {{ section.settings.product_card_padding_bottom }}rem;
   }
-  .product-card a{
+  .product-card a {
     text-decoration: none;
     color: inherit;
   }
@@ -150,76 +159,84 @@
   .product-card:hover{
     border: {{ section.settings.product_card_border_hover }};
   }
-  
-  @media screen and (min-width: 768px) { 
+
+  @media screen and (min-width: 768px) {
     .product-card {
       flex: 1 0 50%;
     }
   }
-  
-  @media screen and (min-width: 1024px) { 
+
+  @media screen and (min-width: 1024px) {
       .product-card{
         flex: 0 0 25%;
       }
   }
-
 {% endstyle %}
 
-<div class="related-products page-width" id="related-products">
-  <h1>{{ section.settings.product_related_heading | escape }}</h1>
-  <div class="container">
-		<section class="carousel">
-        <button class="slide-arrow slide-arrow-prev" id="slide-arrow-prev">&#8249;</button>
-        <button class="slide-arrow slide-arrow-next" id="slide-arrow-next">&#8250;</button>
-        <ul class="carousel-container" id="carousel-container">
 
-        </ul>
-      </section>
+
+
+  <div class="related-products page-width" id="related-products">
+
+    <h1>{{ section.settings.product_related_heading | escape }}</h1>
+    <div class="container">
+      <section class="carousel">
+          <button class="slide-arrow slide-arrow-prev" id="slide-arrow-prev">&#8249;</button>
+          <button class="slide-arrow slide-arrow-next" id="slide-arrow-next">&#8250;</button>
+
+          {% comment %} <div > {% endcomment %}
+            <product-recommendations class="carousel-container" id="carousel-container"
+            data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ section.settings.products_to_show }}"
+            >
+            {%- if recommendations.products_count > 0 -%}
+              {%- for product in recommendations.products -%}
+                <div class="product-card">
+                  <a href="{{ product.url }}">
+                  <img src="{{ product.featured_media | image_url }}" alt="" loading="lazy" />
+                  <div class="product-card-details">
+                    <h3 class="product-card-heading">{{ product.title }}</h3>
+                    <span class="product-card-price">{{ product.price | money }}</span>
+                </div>
+                  </a>
+                </div>
+                {%- endfor -%}
+              {%- endif -%}      
+                      </product-recommendations>
+
+
+              {% comment %} </div> {% endcomment %}
+
+            </section>
+          </div>
       </div>
-      </div>
-</div>
+  </div>
+
 
 {% javascript %}
-const productRecommendationsSection = document.getElementById("carousel-container");
-const prevButton = document.getElementById("slide-arrow-prev");
-const nextButton = document.getElementById("slide-arrow-next");
+  const productRecommendationsSection = document.getElementById('carousel-container');
+  const prevButton = document.getElementById('slide-arrow-prev');
+  const nextButton = document.getElementById('slide-arrow-next');
 
-fetch(window.Shopify.routes.root + `recommendations/products.json?product_id=${window.ShopifyAnalytics.meta.product.id}&intent=related`)
- .then(response => response.json())
- .then((res) => {
-  if (res.products.length > 0) {
-    res.products.forEach((el) => {
-      createCard(el);
-    }) 
-    const ProductItem = document.querySelector(".product-card");
-    nextButton.addEventListener("click", (event) => {
-      const slideWidth = ProductItem.clientWidth;
-      productRecommendationsSection.scrollLeft += slideWidth;
-    });
-    
-    prevButton.addEventListener("click", () => {
-      const slideWidth = ProductItem.clientWidth;
-      productRecommendationsSection.scrollLeft -= slideWidth;
-    });
-  } else {
-    document.getElementById("related-products").style.display = "none";
+  let ProductItem = document.querySelector(".product-card");
+
+  nextButton.addEventListener("click", (event) => {
+    console.log(productRecommendationsSection);
+    if (ProductItem === null) {
+      CheckForProductItems()
+    }
+    productRecommendationsSection.scrollLeft += ProductItem.clientWidth;
+  });
+  
+  prevButton.addEventListener("click", () => {
+    if (ProductItem === null) {
+      CheckForProductItems()
+    }
+    productRecommendationsSection.scrollLeft -= ProductItem.clientWidth;
+  });
+
+  function CheckForProductItems() {
+    ProductItem = document.querySelector(".product-card");
   }
- });
 
- function createCard(el) {
-  if (el.images < 0) return
-  const ProductCard = `
-  <div class="product-card">
-    <a href="${el.url}">
-      <img src="${el.images[0]}" alt="" loading="lazy">
-      <div class="product-card-details">
-          <span>${el.type ? el.type : "N/A"}</span>
-          <h3 class="product-card-heading">${el.title}</h3>
-          <span class="product-card-price">$${el.price / 100}</span>
-      </div>
-    </a>
-  </div>
-  `;
-  productRecommendationsSection.insertAdjacentHTML('beforeend', ProductCard);
- }
+
 {% endjavascript %}

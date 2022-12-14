@@ -114,7 +114,8 @@
     "product-recommendations": {
       "type": "custom-related",
       "settings": {
-        "product-related-heading": "You may also like"
+        "product-related-heading": "You may also like",
+        "product_card_spacing" : "4rem"
       }
     }
   },

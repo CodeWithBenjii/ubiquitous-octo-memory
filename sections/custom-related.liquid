@@ -14,26 +14,15 @@
 {% endschema %}
 
 {% stylesheet %}
-
-.section-{{ section.id }}-padding {
-    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
-    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
-  }
-
-  @media screen and (min-width: 750px) {
-    .section-{{ section.id }}-padding {
-      padding-top: {{ section.settings.padding_top }}px;
-      padding-bottom: {{ section.settings.padding_bottom }}px;
-    }
-  }
-  .slider-wrapper {
+  /* carosel styles */
+  .carousel {
 		height: 100%;
     margin: 1rem;
     position: relative;
     overflow: hidden;
     }
 
-    .slides-container {
+    .carousel-container {
     width: 100%;
 		height: 100%;
     display: flex;
@@ -42,14 +31,15 @@
     padding: 0;
     overflow: scroll;
     scroll-behavior: smooth;
-		gap: 4rem;
-    }
-    .slides-container {
-      scrollbar-width: none; /* Firefox */
-      -ms-overflow-style: none; /* Internet Explorer 10+ */
+    gap: 4rem;
     }
 
-    .slides-container::-webkit-scrollbar {
+    .carousel-container {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .carousel-container::-webkit-scrollbar {
       width: 0;
       height: 0;
     }
@@ -75,51 +65,68 @@
         opacity: 1;
       }
 
-      #slide-arrow-prev {
+      .slide-arrow-prev {
         left: 0;
         padding-left: 0.25rem;
         border-radius: 0 2rem 2rem 0;
       }
 
-      #slide-arrow-next {
+      .slide-arrow-next {
         right: 0;
         padding-left: 0.75rem;
         border-radius: 2rem 0 0 2rem;
       }
-      .product-item {
-      flex: 0 0 25%;
-      display: flex;
-      justify-content: space-between;
-      gap: 2rem;
+
+      /* Product Card */
+      .product-card {
+        display: flex;
+        flex: 0 0 100%;
+        justify-content: space-between;
+        border: 1px solid transparent;
+        padding: 1rem;
+        box-sizing:border-box;
       }
-      .product-item a{
+      .product-card a{
         text-decoration: none;
         color: inherit;
       }
-      .product-item img{
+      .product-card img{
         height: auto;
         width: 100%;
       }
       .product-card-details{
         width: 100%;
-        display: flex;
-        justify-content:space-between;
-        align-items: center;
+        padding-inline: 2rem;
       }
       .product-card-heading{
         margin: 0;
+        font-weight: 700;
+      }
+      .product-card:hover{
+        border: 1px solid gray;
+      }
+
+      @media screen and (min-width: 768px) { 
+        .product-card {
+          flex: 1 0 45%;
+        }
+      }
+      @media screen and (min-width: 1024px) { 
+          .product-card{
+            flex: 0 0 25%;
+          }
       }
 
 {% endstylesheet %}
 
 
-<div class="related-products page-width section-{{ section.id }}-padding" id="related-products">
+<div class="related-products page-width" id="related-products">
   <h1>{{ section.settings.product_related_heading | escape }}</h1>
   <div class="container">
-		<section class="slider-wrapper">
-		  <button class="slide-arrow" id="slide-arrow-prev">&#8249;</button>
-		  <button class="slide-arrow" id="slide-arrow-next">&#8250;</button>
-		  <ul class="slides-container" id="slides-container">
+		<section class="carousel">
+		  <button class="slide-arrow slide-arrow-prev" id="slide-arrow-prev">&#8249;</button>
+		  <button class="slide-arrow slide-arrow-next" id="slide-arrow-next">&#8250;</button>
+		  <ul class="carousel-container" id="carousel-container">
 
       </ul>
       </section>
@@ -133,25 +140,49 @@
 
 
 <script>
-const productRecommendationsSection = document.getElementById("slides-container");
+
+const productRecommendationsSection = document.getElementById("carousel-container");
+let CarouselSkipAmount;
+
+
+HandleScreenSize()
+
+
+addEventListener("resize", (event) => {
+  HandleScreenSize()
+});
+
+function HandleScreenSize() {
+  const MediumScreen = window.matchMedia('(min-width: 768px)');
+  const LargeScreen = window.matchMedia('(min-width: 1024px)');
+  if (MediumScreen.matches) {
+    CarouselSkipAmount = 2
+  } else if (LargeScreen.matches){
+    CarouselSkipAmount = 3
+  }else{
+    CarouselSkipAmount = 1
+  }
+}
+ 
 fetch(window.Shopify.routes.root + "recommendations/products.json?product_id={{ product.id }}&intent=related")
  .then(response => response.json())
  .then((res) => {
-  console.log(res)
   if (res.products) {
     res.products.forEach((el) => {
       createCard(el);
     }) 
-    const slide = document.querySelector(".product-item");
+    const ProductItem = document.querySelector(".product-card");
     const prevButton = document.getElementById("slide-arrow-prev");
     const nextButton = document.getElementById("slide-arrow-next");
+
     nextButton.addEventListener("click", (event) => {
-      const slideWidth = slide.clientWidth;
-      productRecommendationsSection.scrollLeft += slideWidth *3;
+      const slideWidth = ProductItem.clientWidth;
+      productRecommendationsSection.scrollLeft += slideWidth  * CarouselSkipAmount;
     });
+    
     prevButton.addEventListener("click", () => {
-      const slideWidth = slide.clientWidth;
-      productRecommendationsSection.scrollLeft -= slideWidth *3;
+      const slideWidth = ProductItem.clientWidth;
+      productRecommendationsSection.scrollLeft -= slideWidth * CarouselSkipAmount;
     });
   } else {
     document.getElementById("related-products").style.display = "none";
@@ -162,15 +193,13 @@ fetch(window.Shopify.routes.root + "recommendations/products.json?product_id={{ 
  function createCard(el) {
   if (el.images < 0) return
   const Card = document.createElement("li")
-  Card.className = "product-item"
+  Card.className = "product-card"
   const TempElement = `
   <a class="card-link" href="${el.url}">
     <img src="${el.images[0]}" alt="">
     <div class="product-card-details">
-      <div class="left">
         <span>${el.type ? el.type : "N/A"}</span>
         <h3 class="product-card-heading">${el.title}</h3>
-      </div>
         <span class="product-card-price">$${el.price / 100}</span>
     </div>
   </a>

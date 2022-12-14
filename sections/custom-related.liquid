@@ -54,7 +54,7 @@
       "id": "product_card_heading_font_weight",
       "type": "text",
       "label": "Font Weight for Product Title",
-      "default": "600"
+      "default": "400"
     },
     {
       "id": "products_to_show",
@@ -172,10 +172,6 @@
       }
   }
 {% endstyle %}
-
-
-
-
   <div class="related-products page-width" id="related-products">
 
     <h1>{{ section.settings.product_related_heading | escape }}</h1>
@@ -190,22 +186,20 @@
             >
             {%- if recommendations.products_count > 0 -%}
               {%- for product in recommendations.products -%}
-                <div class="product-card">
-                  <a href="{{ product.url }}">
-                  <img src="{{ product.featured_media | image_url }}" alt="" loading="lazy" />
-                  <div class="product-card-details">
-                    <h3 class="product-card-heading">{{ product.title }}</h3>
-                    <span class="product-card-price">{{ product.price | money }}</span>
-                </div>
-                  </a>
-                </div>
+                  {% if product.featured_media %}
+                    <div class="product-card">
+                      <a href="{{ product.url }}">
+                      <img src="{{ product.featured_media | image_url }}" alt="" loading="lazy" />
+                        <div class="product-card-details">
+                          <h3 class="product-card-heading">{{ product.title }}</h3>
+                          <span class="product-card-price">{{ product.price | money }}</span>
+                        </div>
+                      </a>
+                    </div>
+                  {% endif %}
                 {%- endfor -%}
               {%- endif -%}      
-                      </product-recommendations>
-
-
-              {% comment %} </div> {% endcomment %}
-
+              </product-recommendations>
             </section>
           </div>
       </div>
@@ -220,18 +214,18 @@
   let ProductItem = document.querySelector(".product-card");
 
   nextButton.addEventListener("click", (event) => {
-    console.log(productRecommendationsSection);
     if (ProductItem === null) {
       CheckForProductItems()
     }
-    productRecommendationsSection.scrollLeft += ProductItem.clientWidth;
+
+    productRecommendationsSection.scrollLeft += ProductItem.clientWidth + 34;
   });
   
   prevButton.addEventListener("click", () => {
     if (ProductItem === null) {
       CheckForProductItems()
     }
-    productRecommendationsSection.scrollLeft -= ProductItem.clientWidth;
+    productRecommendationsSection.scrollLeft -= ProductItem.clientWidth + 34;
   });
 
   function CheckForProductItems() {
